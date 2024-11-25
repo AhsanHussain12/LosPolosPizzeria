@@ -3,7 +3,7 @@ import React from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome'; // Import the FontAwesome icon library
 
 
-const MenuItemCard = ({ item,getModalvalue,getSelectedItem}) => {
+const MenuItemCard = ({ item, getModalvalue, getSelectedItem}) => {
   //console.log(item); 
   const {name, description, price, image } = item;
 

@@ -1,11 +1,11 @@
 import { View, StyleSheet } from 'react-native'
 import React from 'react'
-import Header from './Header'
+import Header from '../components/Header'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 
 // this component defines the Main layout of the app where each screen is renderd inside the header and tab section
-const MainLayout = ({ children }) => {
+const MainLayoutScreen = ({ children }) => {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
@@ -29,4 +29,4 @@ content: {
     padding: 10,
 },
 });
-export default MainLayout
+export default MainLayoutScreen;

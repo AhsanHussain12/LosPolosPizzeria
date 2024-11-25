@@ -14,11 +14,15 @@
     "@react-navigation/native": "^7.0.4",
     "@react-navigation/stack": "^7.0.6",
     "@reduxjs/toolkit": "^2.3.0",
+    "crypto-js": "^4.2.0",
     "expo": "~52.0.10",
+    "expo-location": "~18.0.2",
     "expo-status-bar": "~2.0.0",
+    "nanoid": "^5.0.8",
     "react": "18.3.1",
     "react-native": "0.76.2",
     "react-native-gesture-handler": "~2.20.2",
+    "react-native-maps": "^1.20.1",
     "react-native-reanimated": "~3.16.1",
     "react-native-safe-area-context": "4.12.0",
     "react-native-screens": "~4.1.0",
@@ -27,7 +31,9 @@
     "redux": "^5.0.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "@types/react": "~18.3.12",
+    "typescript": "^5.3.3"
   },
   "private": true
 }

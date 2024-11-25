@@ -6,7 +6,16 @@ import { incrementQuantity, decrementQuantity, removeFromCart } from "../feature
 
 const CartItemCard = ({ item }) => {
   const dispatch = useDispatch();
+  const renderAdditionalDetails = () => {
+    const details = [];
 
+    if (item.size) details.push(`Size: ${item.size}`);
+    if (item.crust) details.push(`Crust: ${item.crust}`);
+    if (item.stuffed) details.push("Stuffed Crust");
+    if (item.pieces) details.push(`${item.pieces}`);
+
+    return details.join(" | ");
+  };
 
   return (
     <View style={styles.card}>
@@ -16,7 +25,9 @@ const CartItemCard = ({ item }) => {
       {/* Item Details */}
       <View style={styles.details}>
         <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.size}>{item.size} | {item.crust}</Text>
+        <Text style={styles.additionalDetails}>
+          {renderAdditionalDetails()}
+        </Text>
         <Text style={styles.price}>${item.price.toFixed(2)}</Text>
       </View>
 
@@ -62,6 +73,11 @@ const styles = StyleSheet.create({
     padding: 10,
     marginVertical: 10,
     elevation: 5, // Shadow effect
+  },
+  additionalDetails: {
+    fontSize: 14,
+    color: "#aaa",
+    marginTop: 5,
   },
   image: {
     width: 60,

@@ -1,13 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
-import CartItemCard from './CartItemCard';
+import CartItemCard from '../components/CartItemCard';
 import { Ionicons } from '@expo/vector-icons'; // For empty cart icon
 
-const Cart = () => {
+const CartScreen= ({navigation}) => {
   const cartItems = useSelector(state => state.cart.cart);
   const totalPrice = useSelector(state => state.cart.totalPrice);
-
+  console.log(cartItems);
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Your Cart</Text>
@@ -22,7 +22,7 @@ const Cart = () => {
           <ScrollView contentContainerStyle={styles.scrollContainer}>
             {/* Render cart items */}
             {cartItems.map(item => (
-              <CartItemCard key={item.id} item={item} />
+              <CartItemCard key={item.uniqueKey} item={item} />
             ))}
           </ScrollView>
 
@@ -34,7 +34,7 @@ const Cart = () => {
 
             <TouchableOpacity 
             style={styles.checkoutButton}
-            onPress={() => navigation.navigate('')}
+            onPress={() => navigation.navigate('Checkout')}
             >
               <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
             </TouchableOpacity>
@@ -115,4 +115,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Cart;
+export default CartScreen;

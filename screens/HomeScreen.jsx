@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Text, FlatList, TouchableOpacity } from "react-native";
 import PizzeriaMenu from '../constants/pizzaMenu';
-import MenuItemCard from './MenuItemCard';
-import ItemModal from "./Modal";
+import MenuItemCard from '../components/MenuItemCard';
+import ItemModal from "../components/Modal";
 
 
 // implementation of api call to fetch menu items 
@@ -13,6 +13,8 @@ const HomeScreen = () => {
   const [activeCategory, setActiveCategory] = useState(PizzeriaMenu.categories[0].name);
   const [openModal, setOpenModal] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
+
+  // TODO: useAPI call to fetch menu and then render its hardCoded now
   useEffect(() => {
     setMenucategories(Menu.map((category) => ({ id: category.id, name: category.name })));
   }, [Menu]);
@@ -39,6 +41,7 @@ const HomeScreen = () => {
                 item.name === activeCategory && styles.activeCategoryButton,
               ]}
               onPress={() => handleCategoryPress(item.name)}
+              keyExtractor={(item) => item.id.toString()}
             >
               <Text
                 style={[

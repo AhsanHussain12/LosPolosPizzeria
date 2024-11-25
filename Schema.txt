@@ -1,0 +1,88 @@
+User Collection
+{
+  "_id": "ObjectId",
+  "name": "String",
+  "email": "String",
+  "password": "String",
+  "phone": "String",
+  "preferences": ["String"], // e.g., ["Vegan", "Low Spice"]
+  "order_history": [
+    {
+      "order_id": "ObjectId",
+    }
+  ],
+  "saved_cards": [
+    {
+      "card_type": "String", // e.g., "Visa"
+      "last_four": "String", // e.g., "1234"
+      "expiry": "String" // e.g., "01/25"
+    }
+  ]
+}
+
+
+Menu Collection
+{
+  id: "ObjectId"
+  "categories": [
+    {
+      "id": "ObjectId",
+      "name": "String", // e.g., "Pizza"
+      "description": "String",
+      "image": "String:URL",
+      "items": [
+        {
+          "id": "ObjectId", // eg. "Pepperoni Pizza"
+          "name": "String",
+          "description": "String",
+          "price": "Number",
+          "image": "String:URL",
+        }
+      ]
+    }
+  ]
+}
+
+
+Orders Collections 
+{
+  "_id": "ObjectId",
+  "user_id": "ObjectId", // Reference to Users
+  "items": [
+    {
+      "item_id": "ObjectId", // Reference to Menu Items
+      "quantity": "Number"
+    }
+  ],
+  "total_amount": "Number",
+  "status": "String", // e.g., "Pending", "Completed"
+  "payment_method": "String", // e.g., "Credit Card"
+  "discount_applied": "Boolean",
+  "delivery_address": {
+    "street": "String",
+    "city": "String",
+    "zip": "String"
+  },
+  "date": "Date",
+  "special_instructions": "String"
+}
+
+Reviews Collection
+{
+  "_id": "ObjectId",
+  "user_id": "ObjectId", // Reference to Users
+  "order_id": "ObjectId", // Reference to Orders
+  "rating": "Number", // e.g., 1-5
+  "review_text": "String",
+  "date": "Date"
+}
+
+Admins Collection
+{
+  "_id": "ObjectId",
+  "name": "String",
+  "email": "String",
+  "password": "String",
+  "role": "String", // e.g., "Manager", "Staff"
+  "permissions": ["String"] // e.g., ["Order Management", "Inventory Management"]
+}

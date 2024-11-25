@@ -1,15 +1,15 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
-import Home from './components/Home';
-import Cart from './components/Cart';
 import Icon from "react-native-vector-icons/Ionicons";
-import Profile from './components/Profile';
-import MainLayout from './components/MainLayout';
 import { createStackNavigator } from '@react-navigation/stack';
-import Checkout from './components/Checkout';
 import { Provider } from 'react-redux';
 import { store } from './store';
+import CartScreen from './screens/CartScreen';
+import CheckoutScreen from './screens/CheckoutScreen';
+import HomeScreen from './screens/HomeScreen';
+import ProfileScreen from './screens/ProfileScreen';
+import MainLayoutScreen from './screens/MainLayoutScreen';
 
 
 const Stack=createStackNavigator();
@@ -17,8 +17,8 @@ const Tab = createBottomTabNavigator();
 const CartStack = () => {
   return (
     <Stack.Navigator>
-      <Stack.Screen name="Cart" component={Cart} options={{headerShown:false}} />
-      <Stack.Screen name="Checkout" component={Checkout} options={{headerShown:false}} />
+      <Stack.Screen name="Cart" component={CartScreen} options={{headerShown:false}} />
+      <Stack.Screen name="Checkout" component={CheckoutScreen} options={{headerShown:false}} />
     </Stack.Navigator>
   );}
 
@@ -52,9 +52,9 @@ const AppTabNavigation= ()=> {
         }}
       >
         {()=>(
-          <MainLayout>
-            <Home/>
-          </MainLayout>
+          <MainLayoutScreen>
+            <HomeScreen/>
+          </MainLayoutScreen>
         )}
       </Tab.Screen>
 
@@ -80,9 +80,9 @@ const AppTabNavigation= ()=> {
         }}
       >
         {()=>(
-          <MainLayout>
+          <MainLayoutScreen>
             <CartStack />
-          </MainLayout>
+          </MainLayoutScreen>
         )
         }
       </Tab.Screen>
@@ -99,14 +99,13 @@ const AppTabNavigation= ()=> {
         }}
       >
         { ()=>(
-          <MainLayout>
-          <Profile />
-          </MainLayout>
+          <MainLayoutScreen>
+          <ProfileScreen />
+          </MainLayoutScreen>
         )
         }
       </Tab.Screen>
     </Tab.Navigator>
- 
   );
 }
 export default function App(){

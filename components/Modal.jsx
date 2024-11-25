@@ -9,6 +9,9 @@ import {
   ScrollView,
 } from "react-native";
 import { addToCart } from "../features/cart/cartSlice";
+import generateHash from "../utils/hashKey";
+
+
 
 const ItemModal = ({ openModal, getModalvalue, item, category }) => {
   const { name, description, price } = item; // We now get the price of the item as well
@@ -189,7 +192,7 @@ const ItemModal = ({ openModal, getModalvalue, item, category }) => {
         dispatch(addToCart({ ...item, size: selectedSize, crust: selectedCrust, stuffed: isStuffed, price: totalPrice }));
         break;
       case "Beverages":
-        dispatch(addToCart({ ...item, size: selectedSize, price: totalPrice }));
+        dispatch(addToCart({ ...item, size: selectedSize, price: totalPrice  }));
         break;
       case "Sides":
         dispatch(addToCart({ ...item, pieces: selectedPieces, price: totalPrice }));
