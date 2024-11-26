@@ -28,8 +28,6 @@ Menu Collection
     {
       "id": "ObjectId",
       "name": "String", // e.g., "Pizza"
-      "description": "String",
-      "image": "String:URL",
       "items": [
         {
           "id": "ObjectId", // eg. "Pepperoni Pizza"
@@ -57,11 +55,12 @@ Orders Collections
   "total_amount": "Number",
   "status": "String", // e.g., "Pending", "Completed"
   "payment_method": "String", // e.g., "Credit Card"
-  "discount_applied": "Boolean",
   "delivery_address": {
     "street": "String",
     "city": "String",
     "zip": "String"
+    "latitude": "Number",
+    "longitude": "Number"
   },
   "date": "Date",
   "special_instructions": "String"

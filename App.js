@@ -3,29 +3,34 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import Icon from "react-native-vector-icons/Ionicons";
 import { createStackNavigator } from '@react-navigation/stack';
-import { Provider } from 'react-redux';
-import { store } from './store';
+import { Provider, useSelector } from 'react-redux';
+import { PersistGate } from "redux-persist/integration/react";
+import { store, persistor } from "./store";
 import CartScreen from './screens/CartScreen';
 import CheckoutScreen from './screens/CheckoutScreen';
 import HomeScreen from './screens/HomeScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import MainLayoutScreen from './screens/MainLayoutScreen';
+import OrderPlacedScreen from './screens/OrderPlacedScreen';
 
-
-const Stack=createStackNavigator();
+const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
+
 const CartStack = () => {
+
   return (
     <Stack.Navigator>
-      <Stack.Screen name="Cart" component={CartScreen} options={{headerShown:false}} />
-      <Stack.Screen name="Checkout" component={CheckoutScreen} options={{headerShown:false}} />
+      <Stack.Screen name="Cart" component={CartScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="OrderPlaced" component={OrderPlacedScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
-  );}
+  );
+};
 
-const AppTabNavigation= ()=> {
-
+const AppTabNavigation = () => {
+  const orderStatus = useSelector(state=>state.orderTracker.status)
+  console.log(orderStatus)
   return (
- 
     <Tab.Navigator
       initialRouteName="Home"
       screenOptions={{
@@ -34,6 +39,7 @@ const AppTabNavigation= ()=> {
           height: 60, // Consistent height
           position: "absolute",
           borderTopWidth: 0,
+          paddingHorizontal: 20, // Add padding for space on sides
         },
         tabBarShowLabel: false, // Hide tab labels
         headerShown: false, // Header is custom
@@ -51,9 +57,9 @@ const AppTabNavigation= ()=> {
           headerShown: false
         }}
       >
-        {()=>(
+        {() => (
           <MainLayoutScreen>
-            <HomeScreen/>
+            <HomeScreen />
           </MainLayoutScreen>
         )}
       </Tab.Screen>
@@ -64,10 +70,7 @@ const AppTabNavigation= ()=> {
         options={{
           tabBarIcon: ({ focused }) => (
             <View
-              style={[
-                styles.cartButton,
-                focused && styles.cartButtonActive,
-              ]}
+              style={[styles.cartButtonWrapper, focused && styles.cartButtonWrapperActive]}
             >
               <Icon
                 name="cart-outline"
@@ -78,13 +81,23 @@ const AppTabNavigation= ()=> {
             </View>
           ),
         }}
-      >
-        {()=>(
-          <MainLayoutScreen>
-            <CartStack />
-          </MainLayoutScreen>
-        )
-        }
+      >  
+        {() => {
+          // Render OrderPlacedScreen or CartStack based on orderStatus
+          if (orderStatus === "pending") {
+            return (
+              <MainLayoutScreen>
+                <OrderPlacedScreen />
+              </MainLayoutScreen>
+            );
+          }
+          return (
+            <MainLayoutScreen>
+              <CartStack />
+            </MainLayoutScreen>
+          );
+        }}
+
       </Tab.Screen>
 
       {/* Profile Screen */}
@@ -98,27 +111,27 @@ const AppTabNavigation= ()=> {
           tabBarInactiveTintColor: "#666",
         }}
       >
-        { ()=>(
+        {() => (
           <MainLayoutScreen>
-          <ProfileScreen />
+            <ProfileScreen />
           </MainLayoutScreen>
-        )
-        }
+        )}
       </Tab.Screen>
     </Tab.Navigator>
   );
-}
-export default function App(){
+};
+
+export default function App() {
   return (
     <Provider store={store}>
-      <NavigationContainer>
-        <AppTabNavigation />
-      </NavigationContainer>
+      <PersistGate loading={null} persistor={persistor}> 
+        <NavigationContainer>
+          <AppTabNavigation />
+        </NavigationContainer>
+      </PersistGate>
     </Provider>
   );
 }
-
-
 
 const styles = StyleSheet.create({
   screen: {
@@ -133,7 +146,7 @@ const styles = StyleSheet.create({
   },
 
   // Cart Button Styling
-  cartButton: {
+  cartButtonWrapper: {
     backgroundColor: "#4CAF50",
     width: 60,
     height: 60,
@@ -141,7 +154,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     position: "absolute",
-    bottom: 10,
+    bottom: 0,
+    left: "50%", // Center the button horizontally
+    marginLeft: -30, // Offset to truly center (width/2)
     zIndex: 10,
     shadowColor: "#4CAF50",
     shadowOffset: { width: 0, height: 4 },
@@ -149,7 +164,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 5,
   },
-  cartButtonActive: {
+  cartButtonWrapperActive: {
     shadowColor: "#4CAF50",
     shadowOpacity: 0.6,
     shadowRadius: 10,
@@ -160,3 +175,8 @@ const styles = StyleSheet.create({
     textShadowRadius: 8,
   },
 });
+
+
+// TODO: 
+// user Profile Screen
+//Admin APP side left completely

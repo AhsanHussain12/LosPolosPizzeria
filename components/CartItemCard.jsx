@@ -20,7 +20,7 @@ const CartItemCard = ({ item }) => {
   return (
     <View style={styles.card}>
       {/* Item Image */}
-      {/* <Image source={{ uri: item.image }} style={styles.image} /> */}
+      <Image source={{ uri: item.image }} style={styles.image} />
 
       {/* Item Details */}
       <View style={styles.details}>

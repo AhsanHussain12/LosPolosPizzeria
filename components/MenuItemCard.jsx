@@ -15,7 +15,7 @@ const MenuItemCard = ({ item, getModalvalue, getSelectedItem}) => {
     getModalvalue(true)
     getSelectedItem(item)
   };
-  console.log(image)
+  
   return (
     <View style={styles.card}>
       {/* Image placeholder */}

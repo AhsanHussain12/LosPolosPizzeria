@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons'; // For empty cart icon
 const CartScreen= ({navigation}) => {
   const cartItems = useSelector(state => state.cart.cart);
   const totalPrice = useSelector(state => state.cart.totalPrice);
-  console.log(cartItems);
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Your Cart</Text>

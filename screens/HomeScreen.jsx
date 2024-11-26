@@ -134,3 +134,8 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
+
+
+// TODO: 
+// add the functionality to fetch menu from the server or firebase and set using setMenu() rest rendering logic is solid no need to change 
+// therefore the menu response should in the specified format
