@@ -12,10 +12,29 @@ import HomeScreen from './screens/HomeScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import MainLayoutScreen from './screens/MainLayoutScreen';
 import OrderPlacedScreen from './screens/OrderPlacedScreen';
+import MyOrdersScreen from './screens/MyOrdersScreen';
+import EditProfileScreen from './screens/EditProfileScreen';
+import ContactUsScreen from './screens/ContactUsScreen';
+import { OrderFeedbackProvider } from './context/OrderFeedbackContext';
+
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
+const ProfileStack = () => {
+  return(
+    <OrderFeedbackProvider>
+    <Stack.Navigator>
+    <Stack.Screen name="ProfileScreen" component={ProfileScreen} options={{headerShown: false}}/>
+    <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="MyOrders" component={MyOrdersScreen} options={{ headerShown: false}} />
+    <Stack.Screen name="ContactUs" component={ContactUsScreen} options={{ headerShown: false}} />
+    </Stack.Navigator>
+    </OrderFeedbackProvider>
+
+  )
+
+}
 const CartStack = () => {
 
   return (
@@ -113,7 +132,7 @@ const AppTabNavigation = () => {
       >
         {() => (
           <MainLayoutScreen>
-            <ProfileScreen />
+            <ProfileStack />
           </MainLayoutScreen>
         )}
       </Tab.Screen>

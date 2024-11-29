@@ -23,7 +23,7 @@ const MenuItemCard = ({ item, getModalvalue, getSelectedItem}) => {
       <View style={styles.cardContent}>
         <Text style={styles.foodName}>{name}</Text>
         <Text style={styles.foodDescription}>{description}</Text>
-        <Text style={styles.foodPrice}>{price}</Text>
+        <Text style={styles.foodPrice}>Rs: {price}</Text>
         <TouchableOpacity 
         style={styles.addToCartButton}
         onPress={handleCardClick}

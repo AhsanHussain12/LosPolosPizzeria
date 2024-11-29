@@ -44,26 +44,30 @@ Menu Collection
 
 Orders Collections 
 {
-  "_id": "ObjectId",
+  "order_id": "ObjectId",
   "user_id": "ObjectId", // Reference to Users
   "items": [
     {
-      "item_id": "ObjectId", // Reference to Menu Items
-      "quantity": "Number"
+            name: item.name, // e.g. "bbqPizza" || "lava Cake
+            quantity: item.quantity,
+            size: item.size //if size 
+            crusts: item.crusts //if crusts
+            stuffed: item.stuffed // if stuffed
+            pieces: item.pieces // if pieces
     }
   ],
-  "total_amount": "Number",
-  "status": "String", // e.g., "Pending", "Completed"
-  "payment_method": "String", // e.g., "Credit Card"
-  "delivery_address": {
-    "street": "String",
-    "city": "String",
-    "zip": "String"
-    "latitude": "Number",
-    "longitude": "Number"
+  totalAmount: totalPrice,
+  status: 'pending',
+  payment_method: selectedPaymentOption,
+  delivery_address: {
+    area: area,
+    house_no: houseNo,
+    apartment_no: apartmentNo,
+    latitude: location.latitude,
+    longitude: location.longitude,
   },
   "date": "Date",
-  "special_instructions": "String"
+  "feedback": "String", 
 }
 
 Reviews Collection

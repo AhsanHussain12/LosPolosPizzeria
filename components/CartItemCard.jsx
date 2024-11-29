@@ -28,7 +28,7 @@ const CartItemCard = ({ item }) => {
         <Text style={styles.additionalDetails}>
           {renderAdditionalDetails()}
         </Text>
-        <Text style={styles.price}>${item.price.toFixed(2)}</Text>
+        <Text style={styles.price}>Rs: {item.price.toFixed(2)}</Text>
       </View>
 
       {/* Actions Section */}
