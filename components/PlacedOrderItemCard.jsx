@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useOrderFeedbackContext } from '../context/OrderFeedbackContext'
 
+// this componet is used in feedback functionality
 const PlacedOrderItemCard = ({ data }) => {
   const [showDetails, setShowDetails] = useState(false); // State to toggle extra details
   const { setIsModal, setOrderID } = useOrderFeedbackContext(); // Context to manage modal state
@@ -54,6 +55,10 @@ const PlacedOrderItemCard = ({ data }) => {
       ]}>
         Status: {data.status}
       </Text>
+      
+      {data.feedback ? <View style={{paddingTop:10}}><Text style={styles.itemText}>Feedback: {data.feedback}</Text></View>: null}
+      
+      
 
       {data.status === 'completed' && !data.feedback && (
         <TouchableOpacity
@@ -81,7 +86,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 6,
-    maxWidth: '90%',
+    width: '100%',
     alignSelf: 'center',
     borderWidth: 0.5,
     borderColor: '#e0e0e0',

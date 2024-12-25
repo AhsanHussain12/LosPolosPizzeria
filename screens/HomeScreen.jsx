@@ -15,6 +15,7 @@ const HomeScreen = () => {
   const [selectedItem, setSelectedItem] = useState(null)
 
   // TODO: useAPI call to fetch menu and then render its hardCoded now
+  
   useEffect(() => {
     setMenucategories(Menu.map((category) => ({ id: category.id, name: category.name })));
   }, [Menu]);

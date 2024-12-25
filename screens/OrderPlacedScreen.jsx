@@ -1,16 +1,132 @@
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity} from 'react-native';
-import React from 'react';
+import React, { useEffect,useState } from 'react';
 import LottieView from 'lottie-react-native';
-import { useDispatch } from 'react-redux';
-import { setCompleteStatus } from '../features/cart/orderTrackingSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { doc, getDoc } from 'firebase/firestore';
+import { FIRESTORE_DB } from '../firebaseConfig';
+import * as BackgroundFetch from 'expo-background-fetch';
+import * as TaskManager from 'expo-task-manager';
+import OrderStatusModal from '../components/OrderStatusModal';
+
+// background fetch for when app minimized
+const BACKGROUND_FETCH_TASK = 'background-fetch-task';
+
+
 
 const OrderPlacedScreen = () => {
     const dispatch = useDispatch();
-    
+    const orderId = useSelector(state=> state.orderTracker.orderId)
+    const [orderStatus,setOrderStatus]= useState(null)
+    const [modalVisible, setModalVisible] = useState(false);
+
+    const toggleModal = () => {
+      console.log("Modal"+modalVisible);
+      setModalVisible(prev => !prev);
+    };
+
+    TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
+      try {
+        const docRef = doc(FIRESTORE_DB, 'orders', orderId);
+        const docSnap = await getDoc(docRef);
+        console.log("AsyncBackgroundFetch Happened")
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          console.log(`Tracking OrderId inFetch:${orderId} OrderStatusinRedux: ${orderStatus} OrderStatusinDB:${data.status}`);
+          // logic here to render modal and dispatch status
+          if (data.status === 'completed' ) {
+            if(orderStatus === null){
+              setOrderStatus(data.status)
+              toggleModal()
+            }
+          }
+          else if (data.status === 'cancelled') {
+            if(orderStatus === null){
+              setOrderStatus(data.status)
+              toggleModal()
+            }
+          }
+        } else {
+          console.error('No such order!');
+        }
+        return BackgroundFetch.Result.NewData;
+      }
+       catch (error) {
+        console.error('Error in background fetch:', error);
+        return BackgroundFetch.Result.Failed;
+      }
+    });
+
+    const fetchOrderStatus = async () => {
+      try {
+        const docRef = doc(FIRESTORE_DB, 'orders', orderId);
+        const docSnap = await getDoc(docRef);
+  
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          console.log(`Tracking OrderId inFetch:${orderId} OrderStatusinRedux: ${orderStatus} OrderStatusinDB:${data.status}`);
+          // logic here to render modal and dispatch status
+          if (data.status === 'completed' ) {
+            if(orderStatus === null){
+              setOrderStatus(data.status)
+              toggleModal()
+            }
+          }
+          else if (data.status === 'cancelled') {
+            if(orderStatus === null){
+              setOrderStatus(data.status)
+              toggleModal()
+            }
+          }
+        } else {
+          console.error('No such order!');
+        }
+      } catch (error) {
+        console.error('Error fetching order status:', error);
+      }
+    };
+  
+    useEffect(() => {
+      const initializeBackgroundFetch = async () => {
+        try {
+          await BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
+            minimumInterval: 15, // 10 minutes interval for background fetch
+            stopOnTerminate: false,  // Continue fetching after app termination
+            startOnBoot: true,       // Start on device reboot
+          });
+          console.log('Background fetch task registered!');
+        } catch (error) {
+          console.error('Error registering background fetch task:', error);
+        }
+      };
+  
+      // Initialize background fetch on app mount
+      initializeBackgroundFetch();
+
+
+  
+      // Polling interval when the app is active (can be removed if relying entirely on background fetch)
+      const intervalId = setInterval(() => {
+        fetchOrderStatus();
+      }, 3000); // 5 seconds polling for active state (can be adjusted)
+      
+      // Cleanup on component unmount and stop polling interval when order status is not null (completed or cancelled)
+      if(orderStatus !== null ){
+        console.log('Clearing Interval for Fetch');
+        clearInterval(intervalId);
+      }
+      // Cleanup on component unmount
+      return () => {
+        clearInterval(intervalId);
+        BackgroundFetch.unregisterTaskAsync(BACKGROUND_FETCH_TASK);
+      };
+    }, [orderId, orderStatus, dispatch]);
+
+
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Preparing you Order !</Text>
+        <Text style={styles.title}>Preparing you Order 🍴</Text>
       </View>
 
       {/* Lottie Animation of Chef Cooking */}
@@ -29,12 +145,19 @@ const OrderPlacedScreen = () => {
 
       {/* Arrival Time Section */}
       <View style={styles.arrivalTimeContainer}>
-        <Text style={styles.arrivalTimeText}>Will Arrive in:</Text>
+        <Text style={styles.arrivalTimeText}>Expected To Arrive in:</Text>
         <Text style={styles.timeRange}>40 minutes</Text>
-        <TouchableOpacity style={styles.button} onPress={()=> dispatch(setCompleteStatus())}>
+        {/* <TouchableOpacity style={styles.button} onPress={toggleModal}>
         <Text style={styles.buttonText}>GOGO</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
+
+      {orderStatus && 
+      <OrderStatusModal 
+      visible={modalVisible}
+      onClose={toggleModal}
+      orderStatus={orderStatus}
+      />}
     </SafeAreaView>
   );
 };
@@ -69,7 +192,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: '#FF6347', // Golden yellow for the title (matching the pizza theme)
+    color: 'white', // Golden yellow for the title (matching the pizza theme)
     letterSpacing: 1.2, // Added some letter spacing for a more polished look
     marginBottom: 10,
   },
@@ -93,7 +216,7 @@ const styles = StyleSheet.create({
   thanksText: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#FF6347', // Golden yellow for the thanks message
+    color: 'orange', // Golden yellow for the thanks message
     marginBottom: 10,
   },
   subText: {
@@ -117,7 +240,7 @@ const styles = StyleSheet.create({
   timeRange: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FF6347', // Golden yellow for the time range to match the theme
+    color: 'white', // Golden yellow for the time range to match the theme
   },
 });
 
