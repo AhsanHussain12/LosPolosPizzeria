@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons'; // For empty cart icon
 const CartScreen= ({navigation}) => {
   const cartItems = useSelector(state => state.cart.cart);
   const totalPrice = useSelector(state => state.cart.totalPrice);
-
+  console.log( useSelector(state=> state.orderTracker.status) );
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Your Cart</Text>
@@ -29,7 +29,7 @@ const CartScreen= ({navigation}) => {
           {/* Display total price and Proceed to Checkout Button */}
           <View style={styles.footerContainer}>
             <View style={styles.totalContainer}>
-              <Text style={styles.totalText}>Total: ${totalPrice.toFixed(2)}</Text>
+              <Text style={styles.totalText}>Total charge Rs: {totalPrice.toFixed(2)}</Text>
             </View>
 
             <TouchableOpacity 
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   totalText: {
-    color: '#fff',
+    color: 'orange',
     fontSize: 20,
     fontWeight: 'bold',
   },

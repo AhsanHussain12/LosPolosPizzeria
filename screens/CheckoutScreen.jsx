@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView,Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MapView, { Marker } from 'react-native-maps';
 import useCurrentLocation from '../customHooks/useCurrentLocation';
 import GoBackBtn from '../components/GoBackBtn';
-import { ProgressBar } from 'react-native-paper';
+import { ActivityIndicator, ProgressBar } from 'react-native-paper';
 import PaymentCard from '../components/PaymentCard';
 import OrderSummaryCard from '../components/OrderSummaryCard';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { setPendingStatus} from '../features/cart/orderTrackingSlice';
+import { setPendingStatus,setOrderId} from '../features/cart/orderTrackingSlice';
+import { FIRESTORE_DB } from '../firebaseConfig';
+import { addDoc, collection } from 'firebase/firestore';
 
 const CheckoutScreen = () => {
   const { location, region, locationDetails, errorMsg } = useCurrentLocation();
@@ -17,16 +19,21 @@ const CheckoutScreen = () => {
   const totalPrice = useSelector(state => state.cart.totalPrice);
   const [selectedPaymentOption, setSelectedPaymentOption] = useState();
   const [area, setArea] = useState('');
-  const [houseNo, setHouseNo] = useState('');
+  const [phoneNo, setPhoneNo] = useState('');
   const [apartmentNo, setApartmentNo] = useState('');
   const [selectedOption, setSelectedOption] = useState('delivery'); // 'delivery' or 'pickup'
   const [isFormValid, setIsFormValid] = useState(false);
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const [loading,setLoading] = useState(false);
+  const { userCustomer } = useSelector((state) => ({
+    userCustomer: state.user.user,
+    // isLoading: state.user.isLoading,
+  }));
 
   useEffect(() => {
     // Form validation: Ensure address fields are filled and payment method is selected if delivery is chosen
-    const isAddressFilled = area && houseNo;
+    const isAddressFilled = area && phoneNo;
     let isPaymentSelected = false;
     if(selectedOption === 'pickup'){
       isPaymentSelected = true
@@ -38,15 +45,36 @@ const CheckoutScreen = () => {
     console.log('Form is valid:', formValid); // Add this line to debug
     setIsFormValid(formValid);
 
-  }, [area, houseNo, selectedPaymentOption, selectedOption]);
+  }, [area, phoneNo, selectedPaymentOption, selectedOption]);
 
   const handleOptionChange = (option) => {
     setSelectedOption(option);
   };
 
+  const checkPhoneNumber = () => {
+    console.log('Checking phone number', phoneNo);
+  
+    // Check if phone number starts with '0' or '+92'
+    if (phoneNo.startsWith('0') || phoneNo.startsWith('+92')) {
+      // Remove the prefix ('0' or '+92') to check the rest of the number
+      let numberPart = phoneNo;
+  
+      if (phoneNo.startsWith('+92')) {
+        numberPart = phoneNo.slice(3); // Remove '+92'
+      } else {
+        numberPart = phoneNo.slice(1); // Remove '0'
+      }
+  
+      // Check if the remaining part of the number is numeric and has exactly 9 digits
+      if (numberPart.length === 10 && !isNaN(Number(numberPart))) {
+        return true; // Valid phone number
+      }
+    }
+    return false; // Invalid phone number
+  };
+
   const handleAddressChange = (field, value) => {
     if (field === 'area') setArea(value);
-    if (field === 'houseNo') setHouseNo(value);
     if (field === 'apartmentNo') setApartmentNo(value);
   };
 
@@ -84,55 +112,62 @@ const CheckoutScreen = () => {
   );
 
   const handleOrderSubmit = async () => {
+    console.log('UserId at checkout : ' + userCustomer.user.id);
+    setLoading(true);
+
+    if(!checkPhoneNumber()){
+      Alert.alert('Error', 'Please enter a valid phone number');
+      setLoading(false);
+      return;
+    }
     try {
       const payload = {
-        items: cart.map((item) => {
-          return {
-            name: item.name,
-            quantity: item.quantity,
-            ...(item.size && { size: item.size }),
-            ...(item.crusts && { crusts: item.crusts }),
-            ...(item.stuffed && { stuffed: item.stuffed }),
-            ...(item.pieces && { pieces: item.pieces }),
-          };
-        }),
+        user_id: userCustomer.user.id, // Fetch userId using Redux
+        items: cart.map((item) => ({
+          name: item.name,
+          quantity: item.quantity,
+          ...(item.size && { size: item.size }),
+          ...(item.crusts && { crusts: item.crusts }),
+          ...(item.stuffed && { stuffed: item.stuffed }),
+          ...(item.pieces && { pieces: item.pieces }),
+        })),
         totalAmount: totalPrice,
         status: 'pending',
-        payment_method: selectedPaymentOption,
+        payment_method: selectedPaymentOption ? selectedPaymentOption : null,
         delivery_address: {
           area: area,
-          house_no: houseNo,
+          phone_no: phoneNo,
           apartment_no: apartmentNo,
           latitude: location.latitude,
           longitude: location.longitude,
         },
         date: new Date().toISOString(),
+        feedback: "", // Optional feedback
       };
-
-      const options = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      };
-
-      const url = 'https://cc16ebd0-7f97-4932-a6eb-b4759af06c1f.mock.pstmn.io/api/put-order';
-      const response = await fetch(url, options);
-
-      if (response.ok) {
-        dispatch(setPendingStatus());
-        navigation.navigate('OrderPlaced');
-
-      } 
-      else {
-        console.error('Failed to post order:', response.status, response.statusText);
-        alert('Failed to post order.');
-      }
+  
+      // Reference to the Firestore collection
+      const orderRef = collection(FIRESTORE_DB, 'orders');
+      
+      // Add the order to Firestore (Firestore auto-generates order_id)
+      console.log(orderRef,payload)
+      const docRef = await addDoc(orderRef, payload);
+  
+      console.log("Order placed with ID: ", docRef.id); // docRef.id will be the Firestore-generated order_id
+  
+      // Dispatch action to set order status or navigate based on your app's flow
+      dispatch(setPendingStatus());
+      dispatch(setOrderId(docRef.id));
+      // upon successs navigate to orderPlaced screen
+      navigation.navigate('OrderPlaced');
 
     } catch (error) {
+
       console.error('Error posting order:', error);
+
       alert('Error occurred while posting order.');
+    }
+    finally{
+      setLoading(false);
     }
   };
 
@@ -156,17 +191,17 @@ const CheckoutScreen = () => {
         <View style={styles.addressForm}>
           <TextInput
             style={styles.input}
-            placeholder="Name of Area / Block"
+            placeholder="Name of Area / Block / HouseNo"
             placeholderTextColor="#aaa"
             value={area}
             onChangeText={(text) => handleAddressChange('area', text)}
           />
           <TextInput
             style={styles.input}
-            placeholder="House No."
+            placeholder="Contact Number (+92)"
             placeholderTextColor="#aaa"
-            value={houseNo}
-            onChangeText={(text) => handleAddressChange('houseNo', text)}
+            value={phoneNo}
+            onChangeText={setPhoneNo}
           />
           <TextInput
             style={styles.input}
@@ -216,13 +251,19 @@ const CheckoutScreen = () => {
       {/* Total and Place Order Button */}
       {isFormValid ?
       <View style={styles.footer}>
+        {loading ? 
+        (<ActivityIndicator size="small" color="#fff" style={{ marginLeft: 10 }} />)
+        :
         <TouchableOpacity
           style={[styles.placeOrderButton, !isFormValid && { backgroundColor: '#aaa' }]} // Disable button if form is not valid
           onPress={handleOrderSubmit} 
         >
           <Text style={styles.placeOrderText}>Place Order</Text>
-        </TouchableOpacity>
-      </View> : null  }
+        </TouchableOpacity>}
+      </View> 
+      : 
+      null
+      }
     </ScrollView>
   );
 };

@@ -1,8 +1,9 @@
-import { View, Text, TextInput, TouchableOpacity, Pressable, Alert, StyleSheet, Modal, Animated, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Pressable, Alert, StyleSheet, Modal, Animated, Image, Platform } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { useOrderFeedbackContext } from '../context/OrderFeedbackContext';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import * as ImagePicker from 'expo-image-picker';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const FeedbackModal = () => {
 
@@ -11,9 +12,6 @@ const FeedbackModal = () => {
   const [isFormvalid, setIsFormvalid] = useState(false);
   const [issueDescription, setIssueDescription] = useState('');
   const { isModal, setIsModal, orderID } = useOrderFeedbackContext();
-  const [image, setImage] = useState(null);
-
-  // Animation setup for modal slide effect
   const slideAnim = useState(new Animated.Value(300))[0]; // Initial position (below screen)
 
   useEffect(() => {
@@ -66,21 +64,6 @@ const FeedbackModal = () => {
     }
   };
 
-  const pickImage = async () => {
-    // No permissions request is necessary for launching the image library
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-    console.log(result);
-
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-    }
-  }
-
   const renderIssueForm = () => {
     return (
       <View>
@@ -91,13 +74,6 @@ const FeedbackModal = () => {
           onChangeText={setIssueDescription}
           placeholder="Describe the issue"
         />
-        <View style={styles.cameraContainer}>
-          <TouchableOpacity onPress={pickImage} style={styles.cameraButton}> 
-            <Text style={styles.cameraText}>Attach Proof for better Assessment</Text>
-            <Icon name="camera" size={24} color="black"/>
-          </TouchableOpacity>
-          {image && <Image source={{ uri: image }} style={styles.image} />}
-        </View>
       </View>
     );
   };
@@ -105,32 +81,38 @@ const FeedbackModal = () => {
   return (
     <Modal visible={isModal} transparent={true} animationType="none">
       <Animated.View
-        style={[styles.modalContainer, { transform: [{ translateY: slideAnim }] }]}
-      >
+        style={[styles.modalContainer, { transform: [{ translateY: slideAnim }] }]}>
         {/* Close Button */}
         <Pressable onPress={() => setIsModal(false)}>
           <Text style={styles.closeButton}>X</Text>
         </Pressable>
 
         <Text style={styles.modalTitle}>Your Feedback</Text>
-        <TextInput
-          style={styles.input}
-          value={feedback}
-          onChangeText={setFeedback}
-          placeholder="Your feedback here"
-        />
 
-        <View style={styles.buttonsContainer}>
-          <TouchableOpacity onPress={() => setRaiseIssue((prev) => !prev)} style={styles.raiseIssueButton}>
-            <Text style={styles.raiseIssueText}>Raise an Issue</Text>
-          </TouchableOpacity>
+        <KeyboardAwareScrollView
+          style={{ flex: 1 }}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 100 }} // Adjust for keyboard
+        >
+          <TextInput
+            style={styles.input}
+            value={feedback}
+            onChangeText={setFeedback}
+            placeholder="Your feedback here ..."
+          />
 
-          {raiseIssue && renderIssueForm()}
+          <View style={styles.buttonsContainer}>
+            <TouchableOpacity onPress={() => setRaiseIssue((prev) => !prev)} style={styles.raiseIssueButton}>
+              <Text style={styles.raiseIssueText}>Raise an Issue</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity onPress={handleFeedbackSubmit} style={styles.submitButton}>
-            <Text style={styles.submitText}>Submit</Text>
-          </TouchableOpacity>
-        </View>
+            {raiseIssue && renderIssueForm()}
+
+            <TouchableOpacity onPress={handleFeedbackSubmit} style={styles.submitButton}>
+              <Text style={styles.submitText}>Submit</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAwareScrollView>
       </Animated.View>
     </Modal>
   );
@@ -202,28 +184,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  cameraContainer: {
-    flexDirection: 'column',  // Adjust the layout to stack the button and image
-    alignItems: 'flex-start', // Ensure items are aligned to the start (left)
-    marginTop: 10,
-  },
-  cameraButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  cameraText: {
-    marginRight: 10,
-    fontSize: 16,
-    color: '#333',
-  },
-  image: {
-    width: 150,
-    height: 150,
-    marginTop: 10,
-    marginBottom: 10,
-    resizeMode: 'cover',  // Keep the aspect ratio while maintaining the original image dimensions
-    borderRadius: 8,
   },
 });
 

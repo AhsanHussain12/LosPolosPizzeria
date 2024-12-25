@@ -2,56 +2,75 @@ import { StyleSheet, Text, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import Icon from "react-native-vector-icons/Ionicons";
+import FontIcon from 'react-native-vector-icons/FontAwesome5';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Provider, useSelector } from 'react-redux';
+import { Provider } from 'react-redux'; 
+import { useSelector } from 'react-redux'
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./store";
 import CartScreen from './screens/CartScreen';
 import CheckoutScreen from './screens/CheckoutScreen';
 import HomeScreen from './screens/HomeScreen';
-import ProfileScreen from './screens/ProfileScreen';
+import RegisterScreen from './screens/RegisterScreen'; 
+import UserProfileScreen from './screens/UserProfileScreen';
 import MainLayoutScreen from './screens/MainLayoutScreen';
 import OrderPlacedScreen from './screens/OrderPlacedScreen';
 import MyOrdersScreen from './screens/MyOrdersScreen';
-import EditProfileScreen from './screens/EditProfileScreen';
+import ViewProfileScreen from './screens/ViewProfileScreen';
 import ContactUsScreen from './screens/ContactUsScreen';
+import LogoutScreen from './screens/LogoutScreen';
+import LoginScreen from './screens/LoginScreen';
 import { OrderFeedbackProvider } from './context/OrderFeedbackContext';
-
+import OrdersScreen from './screens/OrdersScreen';
+import StaffManagementScreen from './screens/StaffManagementScreen';
+import AdminProfileScreen from './screens/AdminProfileScreen';
+import CameraScreen from './screens/CameraScreen';
+import { useNavigation } from '@react-navigation/native';
+import AnalyticsOverviewScreen from './screens/AnalyticsOverviewScreen';
+import ViewAllUsersScreen from './screens/ViewAllUsersScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const ProfileStack = () => {
-  return(
-    <OrderFeedbackProvider>
-    <Stack.Navigator>
-    <Stack.Screen name="ProfileScreen" component={ProfileScreen} options={{headerShown: false}}/>
-    <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ headerShown: false }} />
-    <Stack.Screen name="MyOrders" component={MyOrdersScreen} options={{ headerShown: false}} />
-    <Stack.Screen name="ContactUs" component={ContactUsScreen} options={{ headerShown: false}} />
-    </Stack.Navigator>
-    </OrderFeedbackProvider>
-
-  )
-
-}
-const CartStack = () => {
-
+const UserProfileStack = () => {
   return (
-    <Stack.Navigator>
-      <Stack.Screen name="Cart" component={CartScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="OrderPlaced" component={OrderPlacedScreen} options={{ headerShown: false }} />
-    </Stack.Navigator>
+    <OrderFeedbackProvider>
+      <Stack.Navigator
+        screenOptions={({ route }) => {
+          console.log("StackNav "+JSON.stringify(route, null, 2)); // Log the full route object in a readable format
+          return {
+            tabBarStyle: {
+              display: route.name === 'Camera' ? 'none' : 'flex', // Hide on Camera
+            }
+          };
+        }}
+      >
+        <Stack.Screen name="ProfileScreen" component={UserProfileScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="ViewProfile" component={ViewProfileScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="MyOrders" component={MyOrdersScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Camera" component={CameraScreen} options={{ headerShown: false  }} />
+        <Stack.Screen name="ContactUs" component={ContactUsScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="LogoutUser" component={LogoutScreen} options={{ headerShown: false }} />
+      </Stack.Navigator>
+    </OrderFeedbackProvider>
   );
 };
 
-const AppTabNavigation = () => {
-  const orderStatus = useSelector(state=>state.orderTracker.status)
-  console.log(orderStatus)
+const AdminProfileStack = () =>{
+  return(
+    <Stack.Navigator>
+      <Stack.Screen name='AdminProfile' component={AdminProfileScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Camera" component={CameraScreen} options={{ headerShown: false  }} />
+      <Stack.Screen name="AnalyticsOverview" component={AnalyticsOverviewScreen} options={{ headerShown: false }} />
+    </Stack.Navigator>
+  )
+}
+
+
+const AdminAppNavigator = () => {
   return (
     <Tab.Navigator
-      initialRouteName="Home"
+      initialRouteName="Orders"
       screenOptions={{
         tabBarStyle: {
           backgroundColor: "#111", // Black tab bar
@@ -62,6 +81,124 @@ const AppTabNavigation = () => {
         },
         tabBarShowLabel: false, // Hide tab labels
         headerShown: false, // Header is custom
+      }}
+    >
+      {/* Home Screen */}
+      <Tab.Screen
+        name="Orders"
+        options={{
+          tabBarIcon: ({ color }) => (
+            <FontIcon name="clipboard-list" size={24} color={color} />
+          ),
+          tabBarActiveTintColor: "#fff",
+          tabBarInactiveTintColor: "#666",
+          headerShown: false
+        }}
+      >
+        {() => (
+          <MainLayoutScreen>
+            <OrdersScreen />
+          </MainLayoutScreen>
+        )}
+      </Tab.Screen>
+
+      {/* StaffManagement Screen */}
+      <Tab.Screen
+        name="StaffManagement"
+        options={{
+          tabBarIcon: ({ color }) => (
+            <FontIcon name="sitemap" size={24} color={color} />
+          ),
+          tabBarActiveTintColor: "#fff",
+          tabBarInactiveTintColor: "#666",
+          headerShown: false
+        }}
+      >
+        {() => (
+          <MainLayoutScreen>
+            <StaffManagementScreen/>
+          </MainLayoutScreen>
+        )}
+      </Tab.Screen>
+
+      {/* MenuManagement Screen */}
+      <Tab.Screen
+        name="ViewAllUsers"
+        options={{
+          tabBarIcon: ({ color }) => (
+            <FontIcon name="users" size={24} color={color} />
+          ),
+          tabBarActiveTintColor: "#fff",
+          tabBarInactiveTintColor: "#666",
+          headerShown: false
+        }}
+      >
+        {() => (
+          <MainLayoutScreen>
+            <ViewAllUsersScreen/>
+          </MainLayoutScreen>
+        )}
+      </Tab.Screen>
+
+      {/*AdminProfile Screen*/}
+      <Tab.Screen
+        name="AdminProfileStack"
+        options={{
+          tabBarIcon: ({ color }) => (
+            <FontIcon name="user" size={24} color={color} />
+          ),
+          tabBarActiveTintColor: "#fff",
+          tabBarInactiveTintColor: "#666",
+          headerShown: false
+        }}
+      >
+        {() => (
+          <MainLayoutScreen>
+            <AdminProfileStack />
+          </MainLayoutScreen>
+        )
+        }
+      </Tab.Screen>
+      
+    </Tab.Navigator>
+  );
+};
+
+const CartStack = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="Cart" component={CartScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="OrderPlaced" component={OrderPlacedScreen} options={{ headerShown: false }} />
+    </Stack.Navigator>
+  );
+};
+
+
+const UserAppNavigation = ({route}) => {
+  const orderStatus = useSelector(state=>state.orderTracker.status)
+  console.log(route);
+  console.log(orderStatus)
+  return (
+    <Tab.Navigator
+      initialRouteName="Home"
+      screenOptions={({ route }) => {
+        console.log(JSON.stringify(route.name, null, 2)) // Log the route object to the console
+
+        return {
+          tabBarStyle: {
+            backgroundColor: "#111", // Black tab bar
+            height: 60, // Consistent height
+            position: "absolute",
+            borderTopWidth: 0,
+            paddingHorizontal: 20, // Add padding for space on sides
+            // Conditionally hide tab bar on Camera screen
+            display: route.name === 'Camera' ? 'none' : 'flex', // Hide on Camera
+          },
+          tabBarShowLabel: false, // Hide tab labels
+          headerShown: false, // Header is custom
+          tabBarVisible: route.name === 'Camera' ? false : true, //
+        };
       }}
     >
       {/* Home Screen */}
@@ -83,7 +220,7 @@ const AppTabNavigation = () => {
         )}
       </Tab.Screen>
 
-      {/* Cart Screen */}
+      {/* Cart Screen change name to cart stack to avoid warning */}
       <Tab.Screen
         name="Cart"
         options={{
@@ -132,25 +269,71 @@ const AppTabNavigation = () => {
       >
         {() => (
           <MainLayoutScreen>
-            <ProfileStack />
+            <UserProfileStack />
           </MainLayoutScreen>
         )}
       </Tab.Screen>
     </Tab.Navigator>
   );
 };
-
+const AuthStackNavigator = () => {
+  return (
+    <Stack.Navigator>
+      {/* Register Screen */}
+      <Stack.Screen 
+        name="Register" 
+        component={RegisterScreen} 
+        options={{ headerShown: false }} 
+      />
+      
+      {/* Login Screen */}
+      <Stack.Screen 
+        name="Login" 
+        component={LoginScreen} 
+        options={{ headerShown: false }} 
+      />
+    </Stack.Navigator>
+  );
+};
 export default function App() {
   return (
     <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}> 
+      <PersistGate loading={null} persistor={persistor}>
         <NavigationContainer>
-          <AppTabNavigation />
+          <AppWrapper />
         </NavigationContainer>
       </PersistGate>
     </Provider>
   );
-}
+ }
+ 
+ const AppWrapper = () => {
+  
+  // Access user state from Redux
+  const { useradmin } = useSelector((state) => ({
+    useradmin: state.user.user,
+  }));
+  
+  // Check if the user is authenticated and is an admin
+  const isAuthenticated = !!useradmin;
+  console.log("isAuthenticated:",isAuthenticated);
+
+  const isAdmin = isAuthenticated && useradmin.user.isAdmin === true;;
+  console.log("admin status:",isAdmin);
+
+  // If user is not authenticated, show AuthStackNavigator
+  if (!isAuthenticated) {
+    return <AuthStackNavigator />;
+  }
+  // If user is authenticated and is an admin, show AdminStackNavigator
+  if (isAdmin) {
+    return <AdminAppNavigator />;
+  }
+  // If user is authenticated but not an admin, show UserAppNavigation
+  return <UserAppNavigation />;
+
+};
+
 
 const styles = StyleSheet.create({
   screen: {
@@ -196,6 +379,3 @@ const styles = StyleSheet.create({
 });
 
 
-// TODO: 
-// user Profile Screen
-//Admin APP side left completely
