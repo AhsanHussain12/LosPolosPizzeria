@@ -5,7 +5,7 @@ import { getFirestore } from 'firebase/firestore';
 // import { GoogleAuthProvider } from 'firebase/auth';
 
 const firebaseConfig = {
-    apiKey: "AIzaSyArfp_tCENDuEUVrDi6Vvn8Hyn_ngfyvS4",
+    apiKey: "yourApiKey",
     authDomain: "mobproject-6e129.firebaseapp.com",
     projectId: "mobproject-6e129",
     storageBucket: "mobproject-6e129.appspot.com",
