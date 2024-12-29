@@ -74,7 +74,7 @@
       "package": "com.ahsan4942.LosPolosPizzeria",
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyA3FzKFHiA7bUcmOaubinG6wqCZt8Dw7Yk"
+          "apiKey": "Your API KEY"
         }
       }
     },
