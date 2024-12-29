@@ -8,10 +8,10 @@ import { emptyCart } from '../features/cart/cartSlice';
 const OrderStatusModal = ({ visible, onClose, orderStatus }) => {
     const order = useSelector(state=> state.orderTracker)
     const dispatch = useDispatch()
-    console.log("InModal status"+orderStatus)
+    console.log("InModal status->"+orderStatus)
     const closeModalwithStateReset=()=>{
         console.log(`OrderInRedux: ${order}`)
-        onClose()
+        onClose(false)
         dispatch(resetOrderStatus())
         dispatch(emptyCart())
     }

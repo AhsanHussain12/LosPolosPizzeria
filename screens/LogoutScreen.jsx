@@ -14,7 +14,6 @@ const LogoutScreen = async () => {
       // Dispatch logout action to Redux
       dispatch(logout());
 
-      Alert.alert("Logged out", "You have successfully logged out.");
     } catch (error) {
       console.error("Error logging out:", error);
       Alert.alert("Error", "Failed to log out. Please try again.");

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useOrderFeedbackContext } from '../context/OrderFeedbackContext'
+import { formatDate } from '../utils/formatDate';
 
 // this componet is used in feedback functionality
 const PlacedOrderItemCard = ({ data }) => {
@@ -9,6 +10,8 @@ const PlacedOrderItemCard = ({ data }) => {
   const { setIsModal, setOrderID } = useOrderFeedbackContext(); // Context to manage modal state
 
   const toggleDetails = () => setShowDetails((prevState) => !prevState); // Toggle function
+  
+
 
   return (
     <View style={styles.cardContainer}>
@@ -40,7 +43,8 @@ const PlacedOrderItemCard = ({ data }) => {
         ))}
       </View>
 
-      <Text style={styles.totalAmountText}>Total: ${data.totalAmount}</Text>
+      <Text style={styles.totalAmountText}>Total Rs: {data.totalAmount.toFixed(2)}</Text>
+      <Text style={styles.createdAtText}>createdAt: {formatDate(data.date)}</Text>
       <Text style={[
         styles.statusText,
         {
@@ -102,6 +106,13 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     letterSpacing: 0.5,
     marginLeft: 8,
+  },
+  createdAtText:{
+    fontSize: 12,
+    color: '#fff',
+    fontWeight: '500',
+    letterSpacing: 0.5,
+    marginLeft: 4,
   },
   icon: {
     marginRight: 8,

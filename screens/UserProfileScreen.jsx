@@ -13,8 +13,9 @@ const UserProfileScreen = () => {
 
   useEffect(()=>{
     const FetchUserProfilePicture = async ()=>{
+      console.log(`Fetching profilePicture${user.id}`);
       const picture = await AsyncStorage.getItem(`profilePicture${user.id}`)
-      //console.log(picture)
+      console.log(picture)
       if(picture){
         setprofilePicture(picture)
       }

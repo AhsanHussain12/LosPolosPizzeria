@@ -3,7 +3,9 @@ import { View, Text, FlatList, TextInput, StyleSheet,ActivityIndicator } from "r
 import Fuse from 'fuse.js';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { FIRESTORE_DB } from '../firebaseConfig';
+import { Dimensions } from 'react-native';
 
+const { height, width } = Dimensions.get('window'); // Get screen dimensions
 const ViewAllUsersScreen = () => {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
@@ -117,6 +119,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#121212",
     padding: 10,
+    paddingBottom: height * 0.1,
   },
   header: {
     flexDirection: "row",

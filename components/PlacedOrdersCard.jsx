@@ -5,6 +5,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { FIRESTORE_DB } from '../firebaseConfig'; 
 import { Alert } from 'react-native'; 
 
+// TODO: if paymnet method NULL then PICKUP
 const PlacedOrdersCard = ({ forTab, order }) => {
 
   const [dropdowns, setDropdowns] = useState({}); // Track dropdowns for each order
@@ -105,7 +106,11 @@ const PlacedOrdersCard = ({ forTab, order }) => {
           <Text style={styles.text}>Customer: {order.userName}</Text>
           <Text style={styles.price}>Rs: {order.totalAmount.toFixed(2)}</Text>
           <Text style={styles.text}>Phone#: {order.delivery_address.phone_no}</Text>
+          {order.payment_method ? 
           <Text style={styles.text}>Payment Mode: {order.payment_method}</Text>
+          :
+          <Text style={styles.text}>Order Type: Pickup </Text>
+          }
           <TouchableOpacity onPress={() => openGoogleMaps(order.delivery_address.latitude, order.delivery_address.longitude)}>
             <View style={{ flexDirection: 'row', alignItems: 'center' ,marginLeft:1,marginBottom:4,marginTop:2}}>
               <Icon name="map-marker-alt" size={20} color="white" />
@@ -156,11 +161,13 @@ const PlacedOrdersCard = ({ forTab, order }) => {
       </View>
     );
   };
+
   // redirect to google map
   const openGoogleMaps = (latitude, longitude) => {
     const url = `https://www.google.com/maps?q=${latitude},${longitude}`;
     Linking.openURL(url).catch(err => console.error('Error opening Google Maps', err));
   };
+
   const OtherOrderCard = () => {
     return (
         <View style={styles.card}>
@@ -169,7 +176,11 @@ const PlacedOrdersCard = ({ forTab, order }) => {
           <Text style={styles.text}>Customer: {order.userName}</Text>
           <Text style={styles.price}>Rs: {order.totalAmount.toFixed(2)}</Text>
           <Text style={styles.text}>Phone#: {order.delivery_address.phone_no}</Text>
+          {order.payment_method ? 
           <Text style={styles.text}>Payment Mode: {order.payment_method}</Text>
+          :
+          <Text style={styles.text}>Order Type: Pickup </Text>
+          }
           <TouchableOpacity onPress={() => openGoogleMaps(order.delivery_address.latitude, order.delivery_address.longitude)}>
             <View style={{ flexDirection: 'row', alignItems: 'center' ,marginLeft:1,marginBottom:4,marginTop:2}}>
               <Icon name="map-marker-alt" size={20} color="white" />

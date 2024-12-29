@@ -1,16 +1,14 @@
 import { View, Text, TextInput, TouchableOpacity, Pressable, Alert, StyleSheet, Modal, Animated, Image, Platform } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { useOrderFeedbackContext } from '../context/OrderFeedbackContext';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import * as ImagePicker from 'expo-image-picker';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { doc, updateDoc } from 'firebase/firestore';
+import { FIRESTORE_DB } from '../firebaseConfig';
+import { ActivityIndicator } from 'react-native-paper';
 
-const FeedbackModal = () => {
+const FeedbackModal = ({orderId,setReload}) => {
 
   const [feedback, setFeedback] = useState('');
-  const [raiseIssue, setRaiseIssue] = useState(false);
-  const [isFormvalid, setIsFormvalid] = useState(false);
-  const [issueDescription, setIssueDescription] = useState('');
+  const [loading, setLoading] = useState(false);
   const { isModal, setIsModal, orderID } = useOrderFeedbackContext();
   const slideAnim = useState(new Animated.Value(300))[0]; // Initial position (below screen)
 
@@ -18,7 +16,7 @@ const FeedbackModal = () => {
     if (isModal) {
       // Slide modal in from the bottom when it's visible
       Animated.spring(slideAnim, {
-        toValue: 0, // Position it at the bottom of the screen
+        toValue: -250, // Position it at the bottom of the screen
         friction: 7,
         tension: 100,
         useNativeDriver: true,
@@ -34,49 +32,43 @@ const FeedbackModal = () => {
     }
   }, [isModal]);
 
-  const handleFeedbackSubmit = () => {
-    if (raiseIssue) {
-      if (!issueDescription) {
-        Alert.alert('Warning', 'Issue Description is required', [
-          { text: 'OK', style: 'destructive' }
-        ]);
-        return; // Exit function early
-      }
-      setRaiseIssue(false); // Close issue form
-    }
+  const handleFeedbackSubmit = async () => {
 
-    if (feedback.length === 0) {
+    if (feedback.trim().length === 0) {
       Alert.alert('Warning', 'Feedback Description is required', [
         { text: 'OK', style: 'destructive' }
       ]);
       return; // Exit function early
     }
-
-    // If both conditions pass, the form is valid
-    setIsFormvalid(true);
-
-    if (isFormvalid) {
-      // Submit data
-      console.log('Form submitted successfully!', orderID);
-      // Reset form states if needed
+    try {
+      // Reference to the Firestore document you want to update
+      setLoading(true);
+      const docRef = doc(FIRESTORE_DB, 'orders', orderId); // Assuming orderId is available in your state
+  
+      // Update the feedback field with the value from feedback
+      await updateDoc(docRef, {
+        feedback: feedback.trim(), // Save the trimmed feedback
+      });
+  
+      // Optionally, you can show a success message or do something after the update
+      Alert.alert('Success', 'Your feedback has been submitted successfully.');
+  
+      // Clear the feedback input field after submission (optional)
       setFeedback('');
-      setIssueDescription('');
+      setIsModal(false);
+      setReload(prev=> !prev); 
+  
+    } catch (error) {
+      console.error('Error updating feedback: ', error);
+      Alert.alert('Error', 'There was an issue submitting your feedback.');
     }
+    finally{
+      setLoading(false);
+    }
+
   };
 
-  const renderIssueForm = () => {
-    return (
-      <View>
-        <Text style={styles.issueDescriptionText}>Issue Description: </Text>
-        <TextInput
-          style={styles.input}
-          value={issueDescription}
-          onChangeText={setIssueDescription}
-          placeholder="Describe the issue"
-        />
-      </View>
-    );
-  };
+
 
   return (
     <Modal visible={isModal} transparent={true} animationType="none">
@@ -87,13 +79,8 @@ const FeedbackModal = () => {
           <Text style={styles.closeButton}>X</Text>
         </Pressable>
 
-        <Text style={styles.modalTitle}>Your Feedback</Text>
+        <Text style={styles.modalTitle}>Feedback For Order: {orderId}</Text>
 
-        <KeyboardAwareScrollView
-          style={{ flex: 1 }}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingBottom: 100 }} // Adjust for keyboard
-        >
           <TextInput
             style={styles.input}
             value={feedback}
@@ -102,17 +89,15 @@ const FeedbackModal = () => {
           />
 
           <View style={styles.buttonsContainer}>
-            <TouchableOpacity onPress={() => setRaiseIssue((prev) => !prev)} style={styles.raiseIssueButton}>
-              <Text style={styles.raiseIssueText}>Raise an Issue</Text>
-            </TouchableOpacity>
-
-            {raiseIssue && renderIssueForm()}
-
+            {loading ? 
+            <ActivityIndicator size={24} color="white" /> 
+            : 
             <TouchableOpacity onPress={handleFeedbackSubmit} style={styles.submitButton}>
               <Text style={styles.submitText}>Submit</Text>
             </TouchableOpacity>
+            }
           </View>
-        </KeyboardAwareScrollView>
+
       </Animated.View>
     </Modal>
   );
@@ -121,17 +106,17 @@ const FeedbackModal = () => {
 const styles = StyleSheet.create({
   modalContainer: {
     padding: 30,
-    backgroundColor: '#fff',
+    backgroundColor: '#333333',
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
-    elevation: 10,
+    elevation: 1,
     width: '100%',
     alignSelf: 'center',
     position: 'absolute',
-    bottom: 0, // Position it at the bottom
+    bottom: -200, // Position it at the bottom
   },
   closeButton: {
     fontSize: 30,
@@ -139,19 +124,26 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
+    fontSize: 24,                   // Increased font size for a bold look
+    fontWeight: '600',              // Semi-bold font weight for better emphasis
+    color: 'white',                 // Dark grey color for better readability
+    marginBottom: 16,              // Spacing below the title
+    textAlign: 'center',           // Center-align the title
   },
   input: {
-    height: 45,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 6,
-    marginVertical: 12,
-    paddingHorizontal: 12,
-    fontSize: 16,
+    height: 100,                    // Set a comfortable height for the input box
+    borderColor: '#ccc',           // Light grey border
+    borderWidth: 1,                // Thin border
+    borderRadius: 5,              // Rounded corners for a sleek, soft look
+    marginVertical: 12,            // Vertical spacing between elements
+    paddingHorizontal: 20,         // Padding inside the input box
+    fontSize: 16,                  // Comfortable font size for typing
+    backgroundColor: '#4B4B4B',    // Slightly off-white background for contrast
+    shadowColor: '#000',           // Adding a shadow for a floating effect
+    shadowOpacity: 0.1,            // Light shadow opacity for depth
+    shadowOffset: { width: 0, height: 4 }, // Subtle shadow positioning
+    shadowRadius: 8,               // Soft shadow radius
+    elevation: 4,                  // Android elevation for a raised effect
   },
   buttonsContainer: {
     marginTop: 20,
@@ -177,7 +169,7 @@ const styles = StyleSheet.create({
   submitButton: {
     backgroundColor: 'green',
     paddingVertical: 12,
-    borderRadius: 5,
+    borderRadius: 20,
     alignItems: 'center',
   },
   submitText: {

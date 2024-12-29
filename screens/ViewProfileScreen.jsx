@@ -1,4 +1,4 @@
-import { View, Text ,StyleSheet,TextInput} from 'react-native'
+import { View, Text ,StyleSheet,TextInput,ScrollView} from 'react-native'
 import React, { useEffect,useState } from 'react'
 import GoBackBtn from '../components/GoBackBtn'
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -6,11 +6,14 @@ import { useSelector } from 'react-redux'
 import { ActivityIndicator } from 'react-native-paper';
 import { collection, doc, getDoc, query } from 'firebase/firestore';
 import { FIRESTORE_DB } from '../firebaseConfig';
+import { Dimensions } from 'react-native';
 
+const { height, width } = Dimensions.get('window'); // Get screen dimensions
 const ViewProfileScreen = () => {
   const user = useSelector(state => state.user.user.user);
   const [extraDetails,setExtraDetails] = useState(null);
   const [loading,setLoading] = useState(true);
+ 
 
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp.seconds * 1000); // Convert Firestore timestamp to Date
@@ -66,7 +69,7 @@ const ViewProfileScreen = () => {
   }, [])
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       {/* Inline GoBack button with text */}
       <View style={styles.header}>
         <GoBackBtn />
@@ -148,7 +151,7 @@ const ViewProfileScreen = () => {
       )}
 
       
-    </View>
+    </ScrollView>
   );
 };
 
@@ -157,6 +160,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#141414', // Dark background for the screen
     padding: 20,
+    paddingBottom: height * 0.1,
   },
   header: {
     flexDirection: 'row', // Align GoBack button and text horizontally

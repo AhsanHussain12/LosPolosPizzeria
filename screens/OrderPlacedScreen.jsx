@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity} from 'react-native';
-import React, { useEffect,useState } from 'react';
+import { View, Text, StyleSheet, SafeAreaView,TouchableOpacity} from 'react-native';
+import React, { useCallback, useEffect,useState } from 'react';
 import LottieView from 'lottie-react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { doc, getDoc } from 'firebase/firestore';
@@ -7,10 +7,60 @@ import { FIRESTORE_DB } from '../firebaseConfig';
 import * as BackgroundFetch from 'expo-background-fetch';
 import * as TaskManager from 'expo-task-manager';
 import OrderStatusModal from '../components/OrderStatusModal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Notifications from 'expo-notifications';
+import { resetOrderStatus } from '../features/cart/orderTrackingSlice';
 
-// background fetch for when app minimized
-const BACKGROUND_FETCH_TASK = 'background-fetch-task';
+const BACKGROUND_FETCH_TASK = 'BACKGROUND_FETCH_ORDERSTATUS';
 
+// BACKGROUND FETCH TASK 
+TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
+  try {
+    const orderId = await AsyncStorage.getItem('currentOrderId');
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: `Order Tracking Started for ${orderId}`,
+        body: 'We will track the order in background for you for smooth experince donot close the app',
+      },
+      trigger: null,
+    });
+    
+    if (!orderId) return BackgroundFetch.Result;
+
+    const docRef = doc(FIRESTORE_DB, 'orders', orderId);
+    const docSnap = await getDoc(docRef);
+
+    console.log("Background Fetch Running - Order:", orderId);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+
+
+        if (data.status === 'completed' || data.status === 'cancelled') {
+          
+          await Notifications.scheduleNotificationAsync({
+            content: {
+              title: 'Order Status Updated Asynchronously',
+              body: data.status === 'completed' 
+                ? 'Your order has been Delivered. Enjoy!'
+                : 'Order cancelled - Please try again later!',
+              data: { orderId, status: data.status },
+            },
+            trigger: null,
+          });
+          
+        }
+    } 
+    else {
+      console.error('No such order!');
+    }
+    return BackgroundFetch.Result;
+  }
+  catch (error) {
+    console.error('Error in background fetch:', error);
+    return BackgroundFetch.Result;
+  }
+});
 
 
 const OrderPlacedScreen = () => {
@@ -18,108 +68,92 @@ const OrderPlacedScreen = () => {
     const orderId = useSelector(state=> state.orderTracker.orderId)
     const [orderStatus,setOrderStatus]= useState(null)
     const [modalVisible, setModalVisible] = useState(false);
+    const [isFirstLoad, setIsFirstLoad] = useState(true);
 
-    const toggleModal = () => {
-      console.log("Modal"+modalVisible);
-      setModalVisible(prev => !prev);
-    };
 
-    TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
+    const fetchOrderStatus = useCallback( async () => {
       try {
         const docRef = doc(FIRESTORE_DB, 'orders', orderId);
         const docSnap = await getDoc(docRef);
-        console.log("AsyncBackgroundFetch Happened")
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          console.log(`Tracking OrderId inFetch:${orderId} OrderStatusinRedux: ${orderStatus} OrderStatusinDB:${data.status}`);
-          // logic here to render modal and dispatch status
-          if (data.status === 'completed' ) {
-            if(orderStatus === null){
-              setOrderStatus(data.status)
-              toggleModal()
-            }
-          }
-          else if (data.status === 'cancelled') {
-            if(orderStatus === null){
-              setOrderStatus(data.status)
-              toggleModal()
-            }
-          }
-        } else {
-          console.error('No such order!');
-        }
-        return BackgroundFetch.Result.NewData;
-      }
-       catch (error) {
-        console.error('Error in background fetch:', error);
-        return BackgroundFetch.Result.Failed;
-      }
-    });
 
-    const fetchOrderStatus = async () => {
-      try {
-        const docRef = doc(FIRESTORE_DB, 'orders', orderId);
-        const docSnap = await getDoc(docRef);
-  
         if (docSnap.exists()) {
           const data = docSnap.data();
-          console.log(`Tracking OrderId inFetch:${orderId} OrderStatusinRedux: ${orderStatus} OrderStatusinDB:${data.status}`);
+          console.log(`Tracking OrderId inFetch:${orderId}  OrderStatusinDB:${data.status}`);
           // logic here to render modal and dispatch status
-          if (data.status === 'completed' ) {
-            if(orderStatus === null){
-              setOrderStatus(data.status)
-              toggleModal()
+          if (data.status === 'completed' || data.status === 'cancelled') {
+            // to avoid extra fetches from altering order status
+            if(orderStatus === null &&  isFirstLoad) {
+              console.log("Triggering modal and updating status...");
+              setOrderStatus(data.status);
+              setIsFirstLoad(false);
+
+              await Notifications.scheduleNotificationAsync({
+                content: {
+                  title: 'Order Status Updated ',
+                  body: data.status === 'completed' 
+                    ? 'Your order has been Delivered. Enjoy!'
+                    : 'Order cancelled - Please try again later!',
+                  data: { orderId, status: data.status },
+                },
+                trigger: null,
+              });
+
+              setModalVisible(true);
+
             }
           }
-          else if (data.status === 'cancelled') {
-            if(orderStatus === null){
-              setOrderStatus(data.status)
-              toggleModal()
-            }
-          }
-        } else {
+        } 
+        else {
           console.error('No such order!');
         }
       } catch (error) {
         console.error('Error fetching order status:', error);
       }
-    };
+    },[orderId]);
   
-    useEffect(() => {
-      const initializeBackgroundFetch = async () => {
-        try {
-          await BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
-            minimumInterval: 15, // 10 minutes interval for background fetch
-            stopOnTerminate: false,  // Continue fetching after app termination
-            startOnBoot: true,       // Start on device reboot
-          });
-          console.log('Background fetch task registered!');
-        } catch (error) {
-          console.error('Error registering background fetch task:', error);
+  useEffect(() => {
+    // BACKGROUND FETCH TASK REGISTERED
+    const initializeBackgroundFetch = async () => {
+      try {
+        
+        if (orderId) {
+          await AsyncStorage.setItem('currentOrderId', orderId);
+          console.log(`OrderId for background fetch ${orderId}`);
         }
-      };
-  
-      // Initialize background fetch on app mount
-      initializeBackgroundFetch();
 
+        await BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
+          minimumInterval: 15 * 60, // 1 minutes interval for background fetch (for testing purposes change later)
+          stopOnTerminate: false,  // Continue fetching after app termination
+          startOnBoot: true,       // Start on device reboot
+        });
+        console.log('Background fetch task registered!');
 
-  
-      // Polling interval when the app is active (can be removed if relying entirely on background fetch)
-      const intervalId = setInterval(() => {
-        fetchOrderStatus();
-      }, 3000); // 5 seconds polling for active state (can be adjusted)
-      
-      // Cleanup on component unmount and stop polling interval when order status is not null (completed or cancelled)
-      if(orderStatus !== null ){
-        console.log('Clearing Interval for Fetch');
-        clearInterval(intervalId);
+      } 
+      catch (error) {
+        console.error('Error registering background fetch task:', error);
       }
-      // Cleanup on component unmount
-      return () => {
-        clearInterval(intervalId);
-        BackgroundFetch.unregisterTaskAsync(BACKGROUND_FETCH_TASK);
-      };
-    }, [orderId, orderStatus, dispatch]);
+    };
+    // Initialize background fetch on app mount
+    initializeBackgroundFetch();
+
+    // Polling interval when the app is active 
+    const intervalId = setInterval(() => {
+      fetchOrderStatus();
+    }, 3000); // 3 seconds polling for active state 
+    
+    // Cleanup on component unmount and stop polling interval when order status is not null (completed or cancelled)
+    if(orderStatus !== null ){
+      console.log('Clearing Interval for Fetch');
+      clearInterval(intervalId);
+    }
+
+    // Cleanup on component unmount
+    return () => {
+      clearInterval(intervalId);
+      BackgroundFetch.unregisterTaskAsync(BACKGROUND_FETCH_TASK);
+    };
+
+  }, [orderId, orderStatus, dispatch]);
 
 
 
@@ -147,15 +181,15 @@ const OrderPlacedScreen = () => {
       <View style={styles.arrivalTimeContainer}>
         <Text style={styles.arrivalTimeText}>Expected To Arrive in:</Text>
         <Text style={styles.timeRange}>40 minutes</Text>
-        {/* <TouchableOpacity style={styles.button} onPress={toggleModal}>
+        <TouchableOpacity style={styles.button} onPress={()=>dispatch(resetOrderStatus())}>
         <Text style={styles.buttonText}>GOGO</Text>
-        </TouchableOpacity> */}
+        </TouchableOpacity>
       </View>
 
       {orderStatus && 
       <OrderStatusModal 
       visible={modalVisible}
-      onClose={toggleModal}
+      onClose={setModalVisible}
       orderStatus={orderStatus}
       />}
     </SafeAreaView>
@@ -164,9 +198,9 @@ const OrderPlacedScreen = () => {
 
 const styles = StyleSheet.create({
     button: {
-        backgroundColor: 'white', // White background for the button
-        paddingVertical: 12,
-        paddingHorizontal: 30,
+        backgroundColor: 'black', // White background for the button
+        paddingVertical: 1,
+        paddingHorizontal: 1,
         borderRadius: 8, // Rounded corners for the button
         borderWidth: 1,
         borderColor: '#000', // Border color to give it definition

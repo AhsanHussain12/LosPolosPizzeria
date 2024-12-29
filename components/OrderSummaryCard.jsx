@@ -36,7 +36,7 @@ const OrderSummaryCard = () => {
 
 const styles = StyleSheet.create({
     summaryContainer: {
-        marginTop: 20,
+        marginTop: 10,
         padding: 15,
         backgroundColor: '#2c2c2c', // Dark background for the summary card
         borderRadius: 10,
