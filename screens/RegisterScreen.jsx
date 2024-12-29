@@ -156,6 +156,7 @@ const Register = () => {
       <TextInput
         style={styles.input}
         placeholder="Full Name"
+        placeholderTextColor="#fff"
         value={name}
         onChangeText={setName}
         autoCapitalize="words"
@@ -164,6 +165,7 @@ const Register = () => {
       <TextInput
         style={styles.input}
         placeholder="Email"
+        placeholderTextColor="#fff"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
@@ -173,6 +175,7 @@ const Register = () => {
       <TextInput
         style={styles.input}
         placeholder="Password"
+        placeholderTextColor="#fff"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
@@ -223,19 +226,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
-    backgroundColor: "#f4f4f4",
+    backgroundColor: "black",
   },
   header: {
     fontSize: 32,
     fontWeight: "bold",
     marginBottom: 24,
-    color: "#333",
+    color: "#fff",
   },
   input: {
     width: "100%",
     padding: 16,
     marginBottom: 16,
-    backgroundColor: "#fff",
+    backgroundColor: "#4B4B4B",
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "#e1e1e1",

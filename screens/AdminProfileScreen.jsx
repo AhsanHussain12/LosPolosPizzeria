@@ -1,5 +1,5 @@
 import React, { useState,useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Pressable, Image, Alert } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Pressable, Image, Alert,ScrollView } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../features/userauthSlice"; // Redux slice
 import { signOut } from "firebase/auth";
@@ -47,7 +47,7 @@ const AdminProfileScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       {/* Profile Image Icon with Camera Icon */}
       <View style={styles.profileImageContainer}>
         <Pressable onPress={handleProfilePicturePress} style={styles.cameraButton}>
@@ -62,13 +62,7 @@ const AdminProfileScreen = () => {
         </Pressable>
       </View>
 
-      {/* Manage Staff */}
-      <TouchableOpacity onPress={() => navigation.navigate("StaffManagement")} style={styles.button}>
-        <View style={styles.buttonContent}>
-          <Icon name="users" size={20} color="#fff" />
-          <Text style={styles.buttonText}>Manage Staff</Text>
-        </View>
-      </TouchableOpacity>
+
 
       {/* View All Users */}
       <TouchableOpacity onPress={() => navigation.navigate("ViewAllUsers")} style={styles.button}>
@@ -79,10 +73,10 @@ const AdminProfileScreen = () => {
       </TouchableOpacity>
 
       {/* View All Users */}
-      <TouchableOpacity onPress={() => navigation.navigate("AnalyticsOverview")} style={styles.button}>
+      <TouchableOpacity onPress={() => navigation.navigate("FeedbacksScreen ")} style={styles.button}>
         <View style={styles.buttonContent}>
-          <Icon name="bar-chart" size={20} color="#fff" />
-          <Text style={styles.buttonText}>View Bussines Statistics</Text>
+          <Icon name="comment" size={20} color="#fff" />
+          <Text style={styles.buttonText}>View User Feedbacks</Text>
         </View>
       </TouchableOpacity>
 
@@ -101,7 +95,7 @@ const AdminProfileScreen = () => {
           <Text style={styles.logoutText}>Logout</Text>
         </View>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
 

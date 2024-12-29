@@ -46,7 +46,7 @@ const OrdersScreen = () => {
               });
             }
             
-            console.log("Completed/Cancelled Orders ", ordersList);
+            // console.log("Completed/Cancelled Orders ", ordersList);
             setOtherOrders(ordersList); // Set the fetched orders into state
 
         } catch (error) {
@@ -98,7 +98,7 @@ const OrdersScreen = () => {
 
     const intervalId = setInterval(() => {
         fetchPendingOrders();
-    }, 5000); // Poll every 5 seconds
+    }, 3000); // Poll every 3 seconds to fetch new orders
     
       return () => clearInterval(intervalId); // Cleanup interval on component unmount
   },[activeTab])

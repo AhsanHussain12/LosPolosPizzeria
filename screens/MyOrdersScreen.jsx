@@ -9,10 +9,11 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { FIRESTORE_DB } from '../firebaseConfig';
 import { ActivityIndicator } from 'react-native-paper';
 const MyOrdersScreen = () => {
-  const { isModal } = useOrderFeedbackContext();
+  const { isModal, orderID } = useOrderFeedbackContext();
   const user = useSelector((state)=> state.user.user.user) // nice work Ibad extra encapsulation
   const [Orders, setOrders] = useState([]);
-  const [loading,setLoading] = useState(true);  
+  const [loading,setLoading] = useState(true); 
+  const [reload,setReload] = useState(false); 
     
   useEffect(() => {
     const fetchOrders = async () => {
@@ -26,9 +27,12 @@ const MyOrdersScreen = () => {
 
       try {
         const querySnapshot = await getDocs(ordersQuery);
-        const orders = querySnapshot.docs.map(doc => doc.data());
+        const orders = querySnapshot.docs.map((doc)=> { return {... doc.data(), "order_id": doc.id} } );
         console.log(orders);
-        setOrders(orders); // Update the state with fetched orders
+        const sortedOrders = orders.sort((a, b) => new Date(b.date) - new Date(a.date));
+        setOrders(sortedOrders); // Update the state with fetched orders, then sort by date in descending order (most recent first)
+
+
       } catch (error) {
         console.error("Error fetching orders: ", error);
       }
@@ -41,7 +45,7 @@ const MyOrdersScreen = () => {
     if (user.id) {
       fetchOrders();
     }
-  }, []);
+  }, [reload]);
 
   const renderOrders = () => {
     return (
@@ -62,7 +66,7 @@ const MyOrdersScreen = () => {
 
       {loading ? <ActivityIndicator size={50} color='white' style={{flex:1}}/>:renderOrders()}
 
-      {isModal && <FeedbackModal />}
+      {isModal && <FeedbackModal orderId={orderID} setReload={setReload}/>}
     </View>
   );
 };

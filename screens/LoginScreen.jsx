@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet,ActivityIndicator } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { login } from '../features/userauthSlice';
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -15,18 +15,18 @@ function LoginScreen({ navigation }) {
 
   // Handle login function
   const handleLogin = async () => {
+
     if (!email || !password) {
       Alert.alert('Error', 'Please enter both email and password');
       return;
     }
 
-    // dispatch(setLoading(true));
-
     try {
+
+      setLoading(true);
       const userCredential = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
       const user = userCredential.user;
-      // console.log('User logged in: ', user);
-  
+
       // Fetch user data from Firestore
       const userRef = doc(FIRESTORE_DB, "users", user.uid);
       const userDoc = await getDoc(userRef);
@@ -44,7 +44,7 @@ function LoginScreen({ navigation }) {
           },
         }));
         console.log('User Admin Status:', userData.isAdmin);
-        Alert.alert("Successfully logged in");
+
       } else {
         Alert.alert("Error", "User data not found in Firestore");
         // dispatch(setLoading(false));
@@ -78,6 +78,7 @@ function LoginScreen({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Email"
+        placeholderTextColor="#fff"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
@@ -87,20 +88,27 @@ function LoginScreen({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Password"
+        placeholderTextColor="#fff"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
-
+      {loading ? 
+      <ActivityIndicator color="blue"/>
+      :
+      <>
       <TouchableOpacity
         style={[styles.button, loading && styles.buttonDisabled]}
         onPress={handleLogin}
         disabled={loading}
       >
         <Text style={styles.buttonText}>
-          {loading ? 'Logging in...' : 'Login'}
+          Login
         </Text>
       </TouchableOpacity>
+      </>
+      }
+      
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>
@@ -120,23 +128,24 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
-    backgroundColor: "#f4f4f4",
+    backgroundColor: "black",
   },
   header: {
     fontSize: 32,
     fontWeight: "bold",
     marginBottom: 24,
-    color: "#333",
+    color: "white",
   },
   input: {
     width: "100%",
     padding: 16,
     marginBottom: 16,
-    backgroundColor: "#fff",
+    backgroundColor: "#4B4B4B",
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "#e1e1e1",
     fontSize: 16,
+    color: "#fff",
   },
   button: {
     width: "100%",

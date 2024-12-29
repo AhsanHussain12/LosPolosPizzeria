@@ -248,18 +248,22 @@ const CheckoutScreen = () => {
 
       </View>
 
+
       {/* Total and Place Order Button */}
       {isFormValid ?
       <View style={styles.footer}>
         {loading ? 
-        (<ActivityIndicator size="small" color="#fff" style={{ marginLeft: 10 }} />)
+        (<ActivityIndicator size="small" color="white" style={{ marginLeft: 10 }} />)
         :
+        <View style={styles.footerContainer}>
         <TouchableOpacity
-          style={[styles.placeOrderButton, !isFormValid && { backgroundColor: '#aaa' }]} // Disable button if form is not valid
-          onPress={handleOrderSubmit} 
-        >
-          <Text style={styles.placeOrderText}>Place Order</Text>
-        </TouchableOpacity>}
+            style={[styles.placeOrderButton, !isFormValid && { backgroundColor: '#aaa' }]} // Disable button if form is not valid
+            onPress={handleOrderSubmit} 
+          >
+            <Text style={styles.placeOrderText}>Place Order</Text>
+          </TouchableOpacity>
+        </View>
+        }
       </View> 
       : 
       null
@@ -369,6 +373,19 @@ const styles = StyleSheet.create({
   progressContainer: {
     marginTop: 20,
     marginBottom: 15,
+  },
+  footerContainer: {
+    paddingVertical: 15,
+    backgroundColor: 'black',
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
+    paddingHorizontal: 15,
+    marginTop: 'auto',
+    marginBottom: 30 // Ensures footer is pinned to the bottom
+  },
+  totalContainer: {
+    marginBottom: 15,
+    alignItems: 'center',
   },
 });
 

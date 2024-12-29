@@ -1,6 +1,6 @@
 import React, {useRef, useState } from 'react';
-import { StyleSheet, TouchableOpacity, View, Image } from 'react-native';
-import { CameraView } from 'expo-camera';
+import { StyleSheet, TouchableOpacity, View, Image,Text,Button, Alert } from 'react-native';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system'; // Import expo-file-system
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
@@ -13,7 +13,30 @@ const CameraScreen = ({navigation,route}) => {
     const [facing,setFacing] = useState("back");
     const {setReload} = route.params
     const user= useSelector(state=>state.user.user.user)
-    console.log(user.id)
+    const [permission, requestPermission] = useCameraPermissions();
+
+    if (!permission) {
+      // Camera permissions are still loading.
+      return <View />;
+    }
+  
+    if (!permission.granted ) {
+      return (
+        <View style={styles.container}>
+          <Text style={styles.message}>
+            We need your permission to show the camera
+          </Text>
+          <Button
+            onPress={requestPermission}
+            title="Grant Permission"
+            color="#FF5733" // Orange color for button
+          />
+          <TouchableOpacity style={styles.goBackButton} onPress={()=> navigation.goBack()}>
+            <Text style={styles.goBackText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
 
     // taking picture is async operation
     const takePicture = async () => {
@@ -47,6 +70,7 @@ const CameraScreen = ({navigation,route}) => {
           setReload(prev => !prev)
           navigation.goBack();
         } catch (error) {
+          Alert.alert(`${error}`)
           console.log('Error saving image:', error);
         }
     };
@@ -183,6 +207,35 @@ const styles = StyleSheet.create({
       flex: 1,
       resizeMode: 'contain',
       margin: 10,
+    },
+    container: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#000', // Black background for the overall screen
+      padding: 20,
+    },
+    message: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: '#fff', // White text for the message
+      textAlign: 'center',
+      marginBottom: 20,
+      lineHeight: 24,
+    },
+    goBackButton: {
+      marginTop: 20,
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      backgroundColor: '#FF5733', // Orange color for the go back button
+      borderRadius: 5,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    goBackText: {
+      color: '#fff', // White text for the button
+      fontSize: 16,
+      fontWeight: '600',
     },
   });
 

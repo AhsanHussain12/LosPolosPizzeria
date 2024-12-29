@@ -1,4 +1,6 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View,Image } from 'react-native';
+import React, { useEffect } from 'react';
+import * as Notifications from 'expo-notifications';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import Icon from "react-native-vector-icons/Ionicons";
@@ -22,16 +24,33 @@ import LogoutScreen from './screens/LogoutScreen';
 import LoginScreen from './screens/LoginScreen';
 import { OrderFeedbackProvider } from './context/OrderFeedbackContext';
 import OrdersScreen from './screens/OrdersScreen';
-import StaffManagementScreen from './screens/StaffManagementScreen';
 import AdminProfileScreen from './screens/AdminProfileScreen';
 import CameraScreen from './screens/CameraScreen';
 import { useNavigation } from '@react-navigation/native';
-import AnalyticsOverviewScreen from './screens/AnalyticsOverviewScreen';
+import ViewFeedbacksScreen from './screens/ViewFeedbacksScreen';
 import ViewAllUsersScreen from './screens/ViewAllUsersScreen';
-
+import { useState } from 'react'; 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
+const SplashScreen = ({ onFinish }) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onFinish();
+    }, 5000); // Splash screen duration: 3 seconds
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <View style={styles.splashScreen}>
+      <Image
+        source={require('./assets/icon.png')}
+        style={styles.splashLogo}
+        resizeMode="contain"
+      />
+    </View>
+  );
+};
 const UserProfileStack = () => {
   return (
     <OrderFeedbackProvider>
@@ -61,7 +80,7 @@ const AdminProfileStack = () =>{
     <Stack.Navigator>
       <Stack.Screen name='AdminProfile' component={AdminProfileScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Camera" component={CameraScreen} options={{ headerShown: false  }} />
-      <Stack.Screen name="AnalyticsOverview" component={AnalyticsOverviewScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="FeedbacksScreen " component={ViewFeedbacksScreen } options={{ headerShown: false }} />
     </Stack.Navigator>
   )
 }
@@ -74,10 +93,11 @@ const AdminAppNavigator = () => {
       screenOptions={{
         tabBarStyle: {
           backgroundColor: "#111", // Black tab bar
-          height: 60, // Consistent height
+          height: 55, // Consistent height
           position: "absolute",
           borderTopWidth: 0,
-          paddingHorizontal: 20, // Add padding for space on sides
+          paddingHorizontal: 20,
+
         },
         tabBarShowLabel: false, // Hide tab labels
         headerShown: false, // Header is custom
@@ -98,25 +118,6 @@ const AdminAppNavigator = () => {
         {() => (
           <MainLayoutScreen>
             <OrdersScreen />
-          </MainLayoutScreen>
-        )}
-      </Tab.Screen>
-
-      {/* StaffManagement Screen */}
-      <Tab.Screen
-        name="StaffManagement"
-        options={{
-          tabBarIcon: ({ color }) => (
-            <FontIcon name="sitemap" size={24} color={color} />
-          ),
-          tabBarActiveTintColor: "#fff",
-          tabBarInactiveTintColor: "#666",
-          headerShown: false
-        }}
-      >
-        {() => (
-          <MainLayoutScreen>
-            <StaffManagementScreen/>
           </MainLayoutScreen>
         )}
       </Tab.Screen>
@@ -145,7 +146,7 @@ const AdminAppNavigator = () => {
         name="AdminProfileStack"
         options={{
           tabBarIcon: ({ color }) => (
-            <FontIcon name="user" size={24} color={color} />
+            <FontIcon name="cog" size={24} color={color} />
           ),
           tabBarActiveTintColor: "#fff",
           tabBarInactiveTintColor: "#666",
@@ -188,7 +189,7 @@ const UserAppNavigation = ({route}) => {
         return {
           tabBarStyle: {
             backgroundColor: "#111", // Black tab bar
-            height: 60, // Consistent height
+            height: 50, // Consistent height
             position: "absolute",
             borderTopWidth: 0,
             paddingHorizontal: 20, // Add padding for space on sides
@@ -222,7 +223,7 @@ const UserAppNavigation = ({route}) => {
 
       {/* Cart Screen change name to cart stack to avoid warning */}
       <Tab.Screen
-        name="Cart"
+        name="CartStack"
         options={{
           tabBarIcon: ({ focused }) => (
             <View
@@ -279,6 +280,12 @@ const UserAppNavigation = ({route}) => {
 const AuthStackNavigator = () => {
   return (
     <Stack.Navigator>
+      {/* Login Screen */}
+      <Stack.Screen 
+        name="Login" 
+        component={LoginScreen} 
+        options={{ headerShown: false }} 
+      />
       {/* Register Screen */}
       <Stack.Screen 
         name="Register" 
@@ -286,22 +293,46 @@ const AuthStackNavigator = () => {
         options={{ headerShown: false }} 
       />
       
-      {/* Login Screen */}
-      <Stack.Screen 
-        name="Login" 
-        component={LoginScreen} 
-        options={{ headerShown: false }} 
-      />
+
     </Stack.Navigator>
   );
 };
+
+// Notifcation Configurations
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
+
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  const handleSplashFinish = () => {
+    setShowSplash(false);
+  };
+  // notifications permission handled here
+  useEffect(() => {
+    const requestPermissions = async () => {
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== 'granted') {
+        console.warn('Notification permissions not granted!');
+      }
+    };
+    requestPermissions();
+  }, []);
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <NavigationContainer>
-          <AppWrapper />
-        </NavigationContainer>
+        {showSplash ? (
+          <SplashScreen onFinish={handleSplashFinish} />
+        ) : (
+          <NavigationContainer>
+            <AppWrapper />
+          </NavigationContainer>
+        )}
       </PersistGate>
     </Provider>
   );
@@ -336,6 +367,16 @@ export default function App() {
 
 
 const styles = StyleSheet.create({
+  splashScreen: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#000",
+  },
+  splashLogo: {
+    width: 200,
+    height: 200,
+  },
   screen: {
     flex: 1,
     justifyContent: "center",

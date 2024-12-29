@@ -7,7 +7,7 @@ const Header = () => {
       {/* Logo */}
       <View style={styles.logoContainer}>
         <Image
-          source={require('../assets/logo.png')} // Replace with your logo file path
+          source={require('../assets/icon.png')} // Replace with your logo file path
           style={styles.logo}
         />
       </View>
@@ -25,7 +25,7 @@ const Header = () => {
 
 const styles = StyleSheet.create({
   header: {
-    height: 80,
+    height: 60,
     backgroundColor: '#FF6347', // Elegant, modern background color
     flexDirection: 'row',
     alignItems: 'center',
